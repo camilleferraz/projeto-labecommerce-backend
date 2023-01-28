@@ -54,9 +54,9 @@ export const purchase: TPurchase[] = [
 
     {
         userId: "joao2013",
-        productId: "RADIO875",
+        productId: "Expresso",
         quantity: 2,
-        totalPrice: 70   
+        totalPrice: 3.00   
     },
 
     {
