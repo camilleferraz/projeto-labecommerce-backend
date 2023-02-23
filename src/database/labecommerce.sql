@@ -22,10 +22,23 @@ CREATE TABLE purchase(
     FOREIGN KEY (buyer_id) REFERENCES users(id)
 );
 
+CREATE TABLE purchase_products(
+purchase_id TEXT NOT NULL,
+product_id  TEXT NOT NULL,
+quantity INTEGER NOT NULL,
+
+FOREIGN KEY (purchase_id) REFERENCES purchase(id),
+FOREIGN KEY (product_id) REFERENCES products(id)
+);
+
 SELECT * FROM users;
 SELECT * FROM products;
 
-SELECT * FROM purchase;
+SELECT * FROM purchase
+INNER JOIN users
+ON purchase.buyer_id = users.id;
+
+SELECT * FROM purchase_products;
 
 INSERT INTO users (id, email, password)
 VALUES 
@@ -46,6 +59,10 @@ VALUES
 ("p001", 6.78, 0, datetime('now'), 1 ),
 ("p002", 1.50, 1, datetime('now'), 2);
 
+INSERT INTO purchase_products (quantity)
+VALUES
+(2),
+(1);
 
 DROP TABLE users;
 DROP TABLE products;
