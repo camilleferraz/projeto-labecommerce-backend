@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import cors from 'cors';
 import {user,product,purchase} from "./database"
 import { TProduct,ProductCoffee,TUser,TPurchase } from "./types";
+import { db } from "./database/knex";
 
 const app = express();
 
@@ -18,10 +19,15 @@ app.get('/ping', (req: Request, res: Response) => {
   });
 
 
-  app.get('/user',(req:Request, res:Response)=>{
+  app.get('/user', async(req:Request, res:Response)=>{
    try {
-    res.status(200).send(user)
-   } catch (error:any) {
+    const result = await db.raw(`
+    SELECT * FROM users;
+    `)
+    res.status(200).send(result)
+   
+  
+  } catch (error:any) {
     console.log(error)
 
     if(res.statusCode === 200){
@@ -66,9 +72,9 @@ app.get('/ping', (req: Request, res: Response) => {
  }
   })
 
-  app.post('/user',(req:Request, res:Response)=>{
+  app.post('/user',async (req:Request, res:Response)=>{
     try {
-      const id = req.body.id as string
+    const id = req.body.id as string
     const email = req.body.email as string
     const password = req.body.password as string
     
@@ -101,11 +107,15 @@ app.get('/ping', (req: Request, res: Response) => {
         throw new Error(" A nova senha deve ser string")
       }
     }
-
-    user.push(newUser)
-
-    res.status(201).send("Cadastro de usuário realizado com sucesso!")}
-    } catch (error:any) {
+    await db.raw(`
+    INSERT INTO users (id, email, password)
+    VALUES 
+    ("${id}","${email}","${password}");`)
+    
+     res.status(201).send("Cadastro de usuário realizado com sucesso!")}
+    } 
+    
+    catch (error:any) {
       console.log(error)
 
       if(res.statusCode === 200){
