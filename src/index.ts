@@ -19,25 +19,56 @@ app.get('/ping', (req: Request, res: Response) => {
 
 
   app.get('/user',(req:Request, res:Response)=>{
+   try {
     res.status(200).send(user)
+   } catch (error:any) {
+    console.log(error)
+
+    if(res.statusCode === 200){
+        res.status(500)
+    }
+    res.send(error.message)
+   }
   })
 
   app.get('/products',(req:Request, res:Response)=>{
-    res.status(200).send(product)
-  })
+    try {
+      res.status(200).send(product)
+    } catch (error) {
+      console.log(error)
+
+      if(res.statusCode === 200){
+          res.status(500)
+    }
+  }})
 
   app.get('/products/search',(req:Request, res:Response)=>{
+ try {
   const q = req.query.q as string
 
-    const result: TProduct[] = product.filter(
-        (product)=>product.name.toLowerCase().includes(q.toLowerCase())
-    )
+  const result: TProduct[] = product.filter(
+      (product)=>product.name.toLowerCase().includes(q.toLowerCase())
+  )
 
-    res.status(200).send(result)
+  if(q.length<2){
+    res.status(404)
+    throw new Error ("O produto deve ter pelo menos um caractere.")
+  }
+
+  res.status(200).send(result)
+ } catch (error:any) {
+  console.log(error)
+
+  if(res.statusCode === 200){
+      res.status(500)
+  }
+  res.send(error.message)
+ }
   })
 
   app.post('/user',(req:Request, res:Response)=>{
-    const id = req.body.id as string
+    try {
+      const id = req.body.id as string
     const email = req.body.email as string
     const password = req.body.password as string
     
@@ -48,13 +79,45 @@ app.get('/ping', (req: Request, res: Response) => {
         password
     }
 
+    if(!newUser){
+      res.status(400)
+      throw new Error ("Produto não encontrado. Verifique a id")
+    } 
+
+    if(id!==undefined){
+      if(typeof id !== "string") {
+        res.status(400)
+        throw new Error(" A nova id deve ser string")
+     }
+     if(email!==undefined){
+      if(typeof email !== "string") {
+        res.status(400)
+        throw new Error(" O novo email deve ser string")
+      }
+    }
+    if(password!==undefined){
+      if(typeof password !== "string") {
+        res.status(400)
+        throw new Error(" A nova senha deve ser string")
+      }
+    }
+
     user.push(newUser)
 
-    res.status(201).send("Cadastro de usuário realizado com sucesso!")
+    res.status(201).send("Cadastro de usuário realizado com sucesso!")}
+    } catch (error:any) {
+      console.log(error)
+
+      if(res.statusCode === 200){
+          res.status(500)
+      }
+      res.send(error.message)
+    }
 
   })
 
   app.post('/products',(req:Request, res:Response)=>{
+   try {
     const id = req.body.id as string
     const name = req.body.name as string
     const price = req.body.price as number
@@ -71,9 +134,19 @@ app.get('/ping', (req: Request, res: Response) => {
 
     res.status(201).send("Cadastro de produto realizado com sucesso!")
 
+   } catch (error:any) {
+    console.log(error)
+
+    if(res.statusCode === 200){
+        res.status(500)
+    }
+    res.send(error.message)
+   }
+   
   })
 
   app.post('/purchase',(req:Request, res:Response)=>{
+   try {
     const userId = req.body.userid as string
     const productId = req.body.productId as string
     const quantity = req.body.quantity as number
@@ -89,6 +162,15 @@ app.get('/ping', (req: Request, res: Response) => {
     purchase.push(newPurchase)
 
     res.status(201).send("Compra Realizada com sucesso")
+   
+  } catch (error:any) {
+    console.log(error)
+
+    if(res.statusCode === 200){
+        res.status(500)
+    }
+    res.send(error.message)
+   }
 
   })
 
@@ -117,15 +199,26 @@ app.get('/ping', (req: Request, res: Response) => {
   })
 
   app.get ('/users/:id/purchases', (req:Request, res:Response)=>{
+   try {
     const id = req.params.id
 
     const result = purchase.find((purchase)=>purchase.userId===id)
     
     res.status(200).send(result)
+  }
+    catch (error:any) {
+    console.log(error)
+
+    if(res.statusCode === 200){
+        res.status(500)
+    }
+    res.send(error.message)
+   }
   })
 
   app.delete('/users/:id',(req:Request,res:Response)=>{
-    const id = req.params.id
+    try {
+      const id = req.params.id
 
     if (id[0] !== "c") {
       res.status(400)
@@ -138,6 +231,14 @@ app.get('/ping', (req: Request, res: Response) => {
       user.splice(userIndex,1)
     }
     res.status(200).send("User deletado com sucesso!")
+    } catch (error:any) {
+      console.log(error)
+
+      if(res.statusCode === 200){
+          res.status(500)
+      }
+      res.send(error.message)
+    }
   })
 
   app.delete('/products/:id',(req:Request,res:Response)=>{
@@ -165,20 +266,52 @@ app.get('/ping', (req: Request, res: Response) => {
   })
 
   app.put('/users/:id',(req:Request,res:Response)=>{
-    const id = req.params.id
+    try {
+      const id = req.params.id
 
-    const newId = req.body.id as string| undefined
-    const newEmail = req.body.email as string| undefined
-    const newPassword = req.body.password as string| undefined
+    const newId = req.body.id 
+    const newEmail = req.body.email 
+    const newPassword = req.body.password
 
-    const users = user.find((user)=>user.id===id)
+    const users:TUser|undefined = user.find((user)=>user.id===id)
 
-    if(users){
-     users.id = newId || users.id
-     users.email= newEmail||users.email
-     users.password=newPassword||users.password
+    if(!users){
+      res.status(400)
+      throw new Error ("Produto não encontrado. Verifique a id")
+    } else{ users.id = newId || users.id
+      users.email = newEmail || users.email
+      users.password = newPassword||users.password
     }
-    res.status(200).send("Atualização realizada com sucesso!")
+
+    if(newId!==undefined){
+      if(typeof newId !== "string") {
+        res.status(400)
+        throw new Error(" A nova id deve ser string")
+     }
+     if(newEmail!==undefined){
+      if(typeof newEmail !== "string") {
+        res.status(400)
+        throw new Error(" O novo email deve ser string")
+      }
+    }
+    if(newPassword!==undefined){
+      if(typeof newPassword !== "string") {
+        res.status(400)
+        throw new Error(" A nova senha deve ser string")
+      }
+    }
+
+    }
+     res.status(200).send("Atualização realizada com sucesso!")
+    }
+     catch (error:any) {
+      console.log(error)
+
+      if(res.statusCode === 200){
+          res.status(500)
+      }
+      res.send(error.message)
+    }
   })
 
   app.put('/products/:id',(req:Request,res:Response)=>{
